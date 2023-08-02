@@ -33,6 +33,7 @@
     "author": "Travis Zuleger",
     "license": "(MIT OR Apache-2.0)",
     "dependencies": {
+        "@kinshipjs/core": "file:../../core",
         "@myorm/myorm": "^0.4.3",
         "mysql2": "^3.2.4"
     },
