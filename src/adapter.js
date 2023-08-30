@@ -44,7 +44,7 @@ function handleWhere(conditions, table="", sanitize=(n) => `?`) {
             const filtered = x.map(mapFilter).filter(x => x !== undefined);
             return filtered.length > 0 ? filtered : undefined;
         }
-        if(x.property.includes(table)) {
+        if(x.property.table === table) {
             return x;
         }
         return undefined;
@@ -127,7 +127,8 @@ export function adapter(config) {
         options: { },
         syntax: {
             escapeColumn: (s) => `\`${s}\``,
-            escapeTable: (s) => `\`${s}\``
+            escapeTable: (s) => `\`${s}\``,
+            dateString: (/** @type {Date} */date) => `${date.getFullYear().toString().padStart(4, '0')}-${(date.getMonth()+1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}`
         },
         execute(scope) {
             return {
@@ -231,11 +232,6 @@ export function adapter(config) {
                     const whereInfo = handleWhere(where);
                     cmd += `\n\t${whereInfo.cmd}`;
                     args = [...args, ...whereInfo.args];
-                    // the inverse happens from above. If a limit or offset was specified but only one table is present, then we will add the strings.
-                    if(limit && from.length <= 1) {
-                        cmd += `\n${limitStr}`;
-                        cmd += `\n${offsetStr}`;
-                    }
 
                     if(group_by) {
                         cmd += '\n\tGROUP BY ' + group_by.map(prop => prop.alias).join('\n\t\t,');
@@ -243,6 +239,12 @@ export function adapter(config) {
 
                     if(order_by) {
                         cmd += '\n\tORDER BY ' + order_by.map(prop => `${prop.alias} ${prop.direction}`).join('\n\t\t,');
+                    }
+
+                    // the inverse happens from above. If a limit or offset was specified but only one table is present, then we will add the strings.
+                    if(limit && from.length <= 1) {
+                        cmd += `\n\t${limitStr}`;
+                        cmd += `\n\t${offsetStr}`;
                     }
 
                     return { cmd, args };

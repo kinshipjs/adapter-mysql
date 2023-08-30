@@ -18,7 +18,6 @@ async function test() {
     const pool = createMySql2Pool(dbCfg);
     const db = drizzle(pool);
     const myAdapter = adapter(pool);
-    /** @type {KinshipContext<import('../../../../adapter-tests/chinook-types').Playlist>}*/
     const ctx = new KinshipContext(myAdapter, "Playlist");
 
     ctx.onSuccess(({ cmdRaw, cmdSanitized }) => {
@@ -51,8 +50,8 @@ async function test() {
         .andThatHasOne(m => m.Track.withKeys("TrackId", "TrackId"))
     );
 
-    const includedCtx = ctx.include(m => m.PlaylistTracks.thenInclude(m => m.Track));
     await ctx._promise;
+    const includedCtx = ctx.include(m => m.PlaylistTracks.thenInclude(m => m.Track));
     
     async function kinshipBench() {
         const start = microsecondsNow();
@@ -142,9 +141,27 @@ async function test() {
     process.exit(1);
 }
 
+async function test2() {
+    console.log(`Testing 2`);
+    const pool = createMySql2Pool(dbCfg);
+    const myadapter = adapter(pool);
+    /** @type {KinshipContext<import('../../../../@myorm/myorm/.github/chinook-setup/chinook-types.js').Track>}*/
+    const $ctx = new KinshipContext(myadapter, "Track");
+    const $tracks = await $ctx.select();
+    const start = microsecondsNow();
+    $tracks.forEach(t => {
+        t.Name = "a";
+    });
+    await $ctx.update($tracks);
+    const end = microsecondsNow();
+    console.log(`Microseconds: `, end - start);
+    return;
+}
+
 function microsecondsNow() {
     const hrTime = process.hrtime();
     return hrTime[0] * 1000000 + hrTime[1] / 1000;
 }
 
-test();
+await test2();
+process.exit(1);

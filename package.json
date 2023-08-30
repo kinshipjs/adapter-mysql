@@ -1,22 +1,21 @@
 {
-    "name": "@myorm/mysql-adapter",
-    "version": "0.4.5",
-    "homepage": "https://github.com/myorm/mysql-adapter",
+    "name": "@kinshipjs/adapter-mysql",
+    "version": "0.0.1-development",
+    "homepage": "https://github.com/kinshipjs/adapter-mysql",
     "repository": {
         "type": "git",
-        "url": "https://github.com/myorm/mysql-adapter"
+        "url": "https://github.com/kinshipjs/adapter-mysql"
     },
-    "description": "Adapter for MyORM that works for MySQL databases.",
+    "description": "Adapter for Kinship that works for MySQL databases.",
     "type": "module",
-    "main": "./dist/cjs/adapter.js",
-    "module": "./dist/esm/adapter.js",
-    "types": "./dist/esm/types/adapter.d.ts",
+    "module": "./dist/index.js",
+    "types": "./dist/types/adapter.d.ts",
     "scripts": {
         "clean": "del /S /Q .\\dist",
-        "build": "npm run clean && npm run build:esm && npm run build:cjs",
-        "build:esm": "tsc -p ./configs/tsconfig.esm.json",
-        "build:cjs": "tsc -p ./configs/tsconfig.cjs.json",
-        "test": "node ./lib/tests/test.js",
+        "build": "npm run clean && npm run build:source && npm run build:types",
+        "build:source": "tsup",
+        "build:types": "tsc",
+        "test": "node ./tests/test.js",
         "prepack": "npm run build"
     },
     "keywords": [
@@ -41,6 +40,7 @@
         "@types/node": "^20.3.1",
         "dotenv": "^16.0.3",
         "drizzle-orm": "^0.27.2",
+        "tsup": "^7.2.0",
         "typescript": "^4.9.4"
     },
     "files": [
@@ -49,12 +49,8 @@
     "exports": {
         ".": {
             "import": {
-                "types": "./dist/esm/types/adapter.d.ts",
-                "default": "./dist/esm/adapter.js"
-            },
-            "require": {
-                "types": "./dist/cjs/types/adapter.d.ts",
-                "default": "./dist/cjs/adapter.js"
+                "types": "./dist/types/index.d.ts",
+                "default": "./dist/index.js"
             }
         }
     }
