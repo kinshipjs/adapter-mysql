@@ -3,6 +3,7 @@ import { createPool } from "mysql2/promise";
 
 /** @type {import('@kinshipjs/core/adapter').InitializeAdapterCallback<import("mysql2/promise").Pool|import("mysql2/promise").Connection>} */
 export function adapter(connection) {
+    let transactionConnection;
     return {
         syntax: {
             dateString: (date) => `${date.getUTCFullYear()}-${date.getUTCMonth()}-${date.getUTCDate()} ${date.getUTCHours}:${date.getUTCMinutes()}`
@@ -22,8 +23,8 @@ export function adapter(connection) {
                         const [results] = await connection.query(cmd, args);
                         return /** @type {any} */ (results);
                     } catch(err) {
-                        await connection.rollback();
-                        throw err;
+                        await transactionConnection.rollback();
+                        throw handleError(err);
                     }
                 },
                 async forInsert(cmd, args) {
@@ -31,8 +32,8 @@ export function adapter(connection) {
                         const [result] = /** @type {import('mysql2/promise').ResultSetHeader[]} */ (await connection.execute(cmd, args));
                         return Array.from(Array(result.affectedRows).keys()).map((_, n) => n + result.insertId);
                     } catch(err) {
-                        await connection.rollback();
-                        throw err;
+                        await transactionConnection.rollback();
+                        throw handleError(err);
                     }
                 },
                 async forUpdate(cmd, args) {
@@ -40,8 +41,8 @@ export function adapter(connection) {
                         const [result] = /** @type {import('mysql2/promise').ResultSetHeader[]} */ (await connection.execute(cmd, args));
                         return result.affectedRows;
                     } catch(err) {
-                        await connection.rollback();
-                        throw err;
+                        await transactionConnection.rollback();
+                        throw handleError(err);
                     }
                 },
                 async forDelete(cmd, args) {
@@ -49,8 +50,8 @@ export function adapter(connection) {
                         const [result] = /** @type {import('mysql2/promise').ResultSetHeader[]} */ (await connection.execute(cmd, args));
                         return result.affectedRows;
                     } catch(err) {
-                        await connection.rollback();
-                        throw err;
+                        await transactionConnection.rollback();
+                        throw handleError(err);
                     }
                 },
                 async forTruncate(cmd, args) {
@@ -58,8 +59,8 @@ export function adapter(connection) {
                         const [result] = /** @type {import('mysql2/promise').ResultSetHeader[]} */ (await connection.execute(cmd, args));
                         return result.affectedRows;
                     } catch(err) {
-                        await connection.rollback();
-                        throw err;
+                        await transactionConnection.rollback();
+                        throw handleError(err);
                     }
                 },
                 async forDescribe(cmd, args) {
@@ -95,12 +96,12 @@ export function adapter(connection) {
                 },
                 async forTransactionBegin() {
                     //@ts-ignore
-                    const cnn = await connection.getConnection();
-                    await cnn.beginTransaction();
-                    return cnn;
+                    transactionConnection = await connection.getConnection();
+                    await transactionConnection.beginTransaction();
+                    return transactionConnection;
                 },
                 async forTransactionEnd(cnn) {
-                    await cnn.commit();
+                    await transactionConnection.commit();
                 }
             }
         },
@@ -176,6 +177,15 @@ export function adapter(connection) {
             }
         }
     }
+}
+
+/**
+ * 
+ * @param {Error} originalError 
+ * @returns {Error}
+ */
+function handleError(originalError) {
+    return originalError;
 }
 
 // Use {stringToCheck}.startsWith({dataType}) where {dataType} is one of the data types in the array for the respective data type used in Kinship.
