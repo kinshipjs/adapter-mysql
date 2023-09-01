@@ -23,7 +23,7 @@ export function adapter(connection) {
                         const [results] = await connection.query(cmd, args);
                         return /** @type {any} */ (results);
                     } catch(err) {
-                        await transactionConnection.rollback();
+                        await transactionConnection?.rollback();
                         throw handleError(err);
                     }
                 },
@@ -32,7 +32,7 @@ export function adapter(connection) {
                         const [result] = /** @type {import('mysql2/promise').ResultSetHeader[]} */ (await connection.execute(cmd, args));
                         return Array.from(Array(result.affectedRows).keys()).map((_, n) => n + result.insertId);
                     } catch(err) {
-                        await transactionConnection.rollback();
+                        await transactionConnection?.rollback();
                         throw handleError(err);
                     }
                 },
@@ -41,7 +41,7 @@ export function adapter(connection) {
                         const [result] = /** @type {import('mysql2/promise').ResultSetHeader[]} */ (await connection.execute(cmd, args));
                         return result.affectedRows;
                     } catch(err) {
-                        await transactionConnection.rollback();
+                        await transactionConnection?.rollback();
                         throw handleError(err);
                     }
                 },
@@ -50,7 +50,7 @@ export function adapter(connection) {
                         const [result] = /** @type {import('mysql2/promise').ResultSetHeader[]} */ (await connection.execute(cmd, args));
                         return result.affectedRows;
                     } catch(err) {
-                        await transactionConnection.rollback();
+                        await transactionConnection?.rollback();
                         throw handleError(err);
                     }
                 },
@@ -59,7 +59,7 @@ export function adapter(connection) {
                         const [result] = /** @type {import('mysql2/promise').ResultSetHeader[]} */ (await connection.execute(cmd, args));
                         return result.affectedRows;
                     } catch(err) {
-                        await transactionConnection.rollback();
+                        await transactionConnection?.rollback();
                         throw handleError(err);
                     }
                 },
@@ -407,7 +407,7 @@ function getGroupBy(group_by) {
 function getOrderBy(order_by) {
     if(!order_by) return { cmd: "", args: [] };
     return {
-        cmd: '\n\tORDER BY ' + order_by.map(prop => prop.alias).join('\n\t\t,'),
+        cmd: '\n\tORDER BY ' + order_by.map(prop => `\`${prop.alias}\``).join('\n\t\t,'),
         args: []
     };
 }

@@ -1,6 +1,6 @@
 {
     "name": "@kinshipjs/mysql2",
-    "version": "0.0.4-development",
+    "version": "0.0.7-development",
     "homepage": "https://github.com/kinshipjs/adapter-mysql",
     "repository": {
         "type": "git",
