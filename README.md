@@ -1,5 +1,5 @@
-![myorm-logo-text-description-640x283](https://github.com/myorm/myorm/assets/55516053/011d0513-48b5-44bc-aa1b-06860eeb7517)
+![Kinship Logo Title & Description](https://raw.githubusercontent.com/kinshipjs/branding/main/kinship-logo-with-description.png)
 
-# `MyORM` mysql-adapter
+# `KinshipJS` mysql2
 
-Database adapter for [MyORM](https://www.npmjs.com/package/@myorm/myorm)
+The `MySQL` custom adapter for the [Kinship](https://www.github.com/kinshipjs/core) ORM using the NodeJS [mysql2](https://npmjs.com/package/mysql2) library.
