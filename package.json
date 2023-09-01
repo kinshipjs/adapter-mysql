@@ -1,10 +1,9 @@
 {
     "name": "@kinshipjs/mysql2",
-    "version": "0.0.3-development",
+    "version": "0.0.4-development",
     "homepage": "https://github.com/kinshipjs/adapter-mysql",
     "repository": {
         "type": "git",
-        "url": "https://github.com/kinshipjs/adapter-mysql"
         "url": "https://github.com/kinshipjs/adapter-mysql"
     },
     "description": "MySQL adapter for the Kinship ORM using the NodeJS mysql2 library.",
@@ -13,10 +12,6 @@
     "types": "./dist/types/index.d.ts",
     "scripts": {
         "clean": "del /S /Q .\\dist",
-        "build": "npm run clean && npm run build:source && npm run build:types",
-        "build:source": "tsup",
-        "build:types": "tsc",
-        "test": "node ./tests/test.js",
         "build": "npm run clean && npm run build:source && npm run build:types",
         "build:source": "tsup",
         "build:types": "tsc",
