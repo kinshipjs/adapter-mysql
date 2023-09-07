@@ -1,6 +1,6 @@
 {
     "name": "@kinshipjs/mysql2",
-    "version": "0.0.7-development",
+    "version": "0.0.11-development",
     "homepage": "https://github.com/kinshipjs/adapter-mysql",
     "repository": {
         "type": "git",
@@ -31,7 +31,7 @@
     "author": "Travis Zuleger",
     "license": "(MIT OR Apache-2.0)",
     "dependencies": {
-        "@kinshipjs/core": "^0.0.1",
+        "@kinshipjs/core": "^0.0.26-development",
         "mysql2": "^3.2.4"
     },
     "devDependencies": {
