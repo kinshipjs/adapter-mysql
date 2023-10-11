@@ -1,6 +1,7 @@
 //@ts-check
 import { KinshipContext } from '@kinshipjs/core';
 import { adapter, createMySql2Pool } from '../src/index.js';
+import { testAdapter } from '@kinshipjs/adapter-tests';
 
 const pool = createMySql2Pool({
     database: "kinship_test",
@@ -13,4 +14,5 @@ const pool = createMySql2Pool({
 const connection = adapter(pool);
 /** @type {KinshipContext<import('../../core/test/test.js').User>} */
 const ctx = new KinshipContext(connection, "User");
-ctx.where(m => m.Id.equals(1));
+
+testAdapter(connection);

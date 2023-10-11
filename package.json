@@ -31,14 +31,15 @@
     "author": "Travis Zuleger",
     "license": "(MIT OR Apache-2.0)",
     "dependencies": {
-        "@kinshipjs/core": "^0.0.1",
-        "mysql2": "^3.2.4"
+        "@kinshipjs/core": "file:../core",
+        "mysql2": "^3.6.1"
     },
     "devDependencies": {
-        "@types/node": "^20.3.1",
-        "dotenv": "^16.0.3",
+        "@kinshipjs/adapter-tests": "file:../adapter-tests",
+        "@types/node": "^20.6.0",
+        "dotenv": "^16.3.1",
         "tsup": "^7.2.0",
-        "typescript": "^4.9.5"
+        "typescript": "^5.2.2"
     },
     "files": [
         "dist/**/*"
