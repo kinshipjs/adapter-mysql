@@ -1,6 +1,6 @@
 {
     "name": "@kinshipjs/mysql2",
-    "version": "0.0.11-development",
+    "version": "0.0.13-development",
     "homepage": "https://github.com/kinshipjs/adapter-mysql",
     "repository": {
         "type": "git",
@@ -11,8 +11,7 @@
     "module": "./dist/index.js",
     "types": "./dist/types/index.d.ts",
     "scripts": {
-        "clean": "del /S /Q .\\dist",
-        "build": "npm run clean && npm run build:source && npm run build:types",
+        "build": "npm run build:source && npm run build:types",
         "build:source": "tsup",
         "build:types": "tsc",
         "test": "node ./tests/test.js",
@@ -31,15 +30,14 @@
     "author": "Travis Zuleger",
     "license": "(MIT OR Apache-2.0)",
     "dependencies": {
-        "@kinshipjs/core": "file:../core",
+        "@kinshipjs/core": "^0.0.45-development",
         "mysql2": "^3.6.1"
     },
     "devDependencies": {
-        "@kinshipjs/adapter-tests": "file:../adapter-tests",
         "@types/node": "^20.6.0",
         "dotenv": "^16.3.1",
         "tsup": "^7.2.0",
-        "typescript": "^5.2.2"
+        "typescript": "^5.1.6"
     },
     "files": [
         "dist/**/*"

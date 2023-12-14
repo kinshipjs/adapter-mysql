@@ -5,11 +5,10 @@ export const createMySql2Pool = createPool;
 
 /** @type {import('@kinshipjs/core/adapter').InitializeAdapterCallback<import("mysql2/promise").Pool|import("mysql2/promise").Connection>} */
 export function adapter(connection) {
-    let transactionConnection;
     return {
         syntax: {
             dateString: date => date.getUTCFullYear() + "-" 
-                + date.getUTCMonth + "-" 
+                + date.getUTCMonth() + "-" 
                 + date.getUTCDate() + "" 
                 + date.getUTCHours() + ":"
                 + date.getUTCMinutes()
@@ -29,7 +28,6 @@ export function adapter(connection) {
                         const [results] = await connection.query(cmd, args);
                         return /** @type {any} */ (results);
                     } catch(err) {
-                        await transactionConnection?.rollback();
                         throw handleError(err, ErrorTypes);
                     }
                 },
@@ -38,7 +36,6 @@ export function adapter(connection) {
                         const [result] = /** @type {import('mysql2/promise').ResultSetHeader[]} */ (await connection.execute(cmd, args));
                         return Array.from(Array(result.affectedRows).keys()).map((_, n) => n + result.insertId);
                     } catch(err) {
-                        await transactionConnection?.rollback();
                         throw handleError(err, ErrorTypes);
                     }
                 },
@@ -47,7 +44,6 @@ export function adapter(connection) {
                         const [result] = /** @type {import('mysql2/promise').ResultSetHeader[]} */ (await connection.execute(cmd, args));
                         return result.affectedRows;
                     } catch(err) {
-                        await transactionConnection?.rollback();
                         throw handleError(err, ErrorTypes);
                     }
                 },
@@ -56,7 +52,6 @@ export function adapter(connection) {
                         const [result] = /** @type {import('mysql2/promise').ResultSetHeader[]} */ (await connection.execute(cmd, args));
                         return result.affectedRows;
                     } catch(err) {
-                        await transactionConnection?.rollback();
                         throw handleError(err, ErrorTypes);
                     }
                 },
@@ -65,7 +60,6 @@ export function adapter(connection) {
                         const [result] = /** @type {import('mysql2/promise').ResultSetHeader[]} */ (await connection.execute(cmd, args));
                         return result.affectedRows;
                     } catch(err) {
-                        await transactionConnection?.rollback();
                         throw handleError(err, ErrorTypes);
                     }
                 },
@@ -100,14 +94,25 @@ export function adapter(connection) {
                     }
                     return set;
                 },
-                async forTransactionBegin() {
-                    //@ts-ignore
-                    transactionConnection = await connection.getConnection();
-                    await transactionConnection.beginTransaction();
-                    return transactionConnection;
-                },
-                async forTransactionEnd(cnn) {
-                    await transactionConnection.commit();
+                async forTransaction() {
+                    let transaction;
+                    if("getConnection" in connection) {
+                        transaction = await connection.getConnection();
+                    } else {
+                        transaction = connection;
+                    }
+                    return {
+                        transaction,
+                        begin: async () => {
+                            await transaction.beginTransaction();
+                        },
+                        commit: async () => {
+                            await transaction.commit();
+                        },
+                        rollback: async () => {
+                            await transaction.rollback();
+                        }
+                    };
                 }
             }
         },
@@ -225,7 +230,6 @@ function handleError(originalError, {
         case 1053: throw UnhandledDBError(`Server shutting down.`, originalError.errno, originalError.message);
         case 1065: throw UnhandledDBError(`Parse error.`, originalError.errno, originalError.message);
         case 1180: throw UnhandledDBError(`Error during commit.`, originalError.errno, originalError.message);
-        case 1180: throw UnhandledDBError(`Error during rollback.`, originalError.errno, originalError.message);
         // likely would be a problem within @kinshipjs/core itself and should be addressed as an issue.
         case 1055: throw UnhandledDBError(`Wrong field used with GROUP BY.`, originalError.errno, originalError.message);
         case 1057: throw UnhandledDBError(`Combination of fields and aggregate sum.`, originalError.errno, originalError.message);
