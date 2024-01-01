@@ -30,10 +30,11 @@
     "author": "Travis Zuleger",
     "license": "(MIT OR Apache-2.0)",
     "dependencies": {
-        "@kinshipjs/core": "^0.0.45-development",
-        "mysql2": "^3.6.1"
+        "@kinshipjs/core": "^0.1.4",
+        "mysql2": "^3.6.5"
     },
     "devDependencies": {
+        "@kinshipjs/adapter-tests": "^0.0.13",
         "@types/node": "^20.6.0",
         "dotenv": "^16.3.1",
         "tsup": "^7.2.0",

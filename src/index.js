@@ -21,7 +21,8 @@ export function adapter(connection) {
             min: (table, col) => "MIN(`" + table + "`.`" + col + "`)",
             sum: (table, col) => "SUM(`" + table + "`.`" + col + "`)"
         },
-        execute({ ErrorTypes }) {
+        execute({ ErrorTypes, transaction }) {
+            connection = transaction ?? connection;
             return {
                 async forQuery(cmd, args) {
                     try {
@@ -95,21 +96,22 @@ export function adapter(connection) {
                     return set;
                 },
                 async forTransaction() {
-                    let transaction;
-                    if("getConnection" in connection) {
-                        transaction = await connection.getConnection();
-                    } else {
-                        transaction = connection;
-                    }
                     return {
-                        transaction,
                         begin: async () => {
+                            let transaction;
+                            if("getConnection" in connection) {
+                                transaction = await connection.getConnection();
+                            } else {
+                                transaction = connection;
+                            }
                             await transaction.beginTransaction();
+                            
+                            return transaction;
                         },
-                        commit: async () => {
+                        commit: async (transaction) => {
                             await transaction.commit();
                         },
-                        rollback: async () => {
+                        rollback: async (transaction) => {
                             await transaction.rollback();
                         }
                     };
@@ -147,18 +149,18 @@ export function adapter(connection) {
                         cmd = "SELECT " + selects.cmd + "\n\tFROM "
                             + from.cmd
                             + where.cmd
-                            + limit.cmd
-                            + offset.cmd
                             + groupBy.cmd
-                            + orderBy.cmd;
+                            + orderBy.cmd
+                            + limit.cmd
+                            + offset.cmd;
                         args = args.concat(
                             selects.args, 
                             from.args, 
                             where.args,
+                            groupBy.args, 
+                            orderBy.args,
                             limit.args, 
                             offset.args, 
-                            groupBy.args, 
-                            orderBy.args
                         );
                     }
 
@@ -220,22 +222,26 @@ function handleError(originalError, {
     switch(originalError.errno) {
         // required to pass @kinshipjs/adapter-tests
         case 1062: throw NonUniqueKey(originalError.errno, originalError.message);
-        case 1138: throw ValueCannotBeNull(originalError.errno, originalError.message);
+        case 1048: throw ValueCannotBeNull(originalError.errno, originalError.message);
         case 1169: throw NonUniqueKey(originalError.errno, originalError.message);
         case 1216: throw UpdateConstraintError(originalError.errno, originalError.message);
         case 1217: throw DeleteConstraintError(originalError.errno, originalError.message);
+
         // recommended, but not required
         case 1105: throw UnknownDBError(`Unknown database error occurred.`, originalError.errno, originalError.message);
+
         // does not need to be handled, but can be if you want to give more context to the user on why things may have errored.
         case 1053: throw UnhandledDBError(`Server shutting down.`, originalError.errno, originalError.message);
         case 1065: throw UnhandledDBError(`Parse error.`, originalError.errno, originalError.message);
         case 1180: throw UnhandledDBError(`Error during commit.`, originalError.errno, originalError.message);
+
         // likely would be a problem within @kinshipjs/core itself and should be addressed as an issue.
         case 1055: throw UnhandledDBError(`Wrong field used with GROUP BY.`, originalError.errno, originalError.message);
         case 1057: throw UnhandledDBError(`Combination of fields and aggregate sum.`, originalError.errno, originalError.message);
         case 1059: throw UnhandledDBError(`Field name is too long.`, originalError.errno, originalError.message);
         case 1060: throw UnhandledDBError(`Duplicate field name.`, originalError.errno, originalError.message);
         case 1066: throw UnhandledDBError(`Non-unique table name.`, originalError.errno, originalError.message);
+
         // any of the above from 1053 to here could also just be optionally handled here.
         default: throw UnhandledDBError(`Unhandled error.`, originalError.errno, originalError.message);
     }
@@ -473,7 +479,7 @@ function getGroupBy(group_by) {
 function getOrderBy(order_by) {
     if(!order_by) return { cmd: "", args: [] };
     return {
-        cmd: "\n\tGROUP BY " + order_by.map(prop => "`" + prop.alias + "`").join("\n\t\t,"),
+        cmd: "\n\tORDER BY " + order_by.map(prop => "`" + prop.alias + "`").join("\n\t\t,"),
         args: []
     };
 }
@@ -542,7 +548,7 @@ function getImplicitUpdate({ table, columns, where, implicit }) {
         }
     }
     const { cmd: cmdWhere, args: cmdArgs } = getWhere(where);
-    const cmd = "UPDATE " + table + "\n\tSET\n\t\t" + Object.keys(cases).map(k => "`" + k + "` = (" + cases[k].cmd + ")`").join(",\n\t\t") + cmdWhere;
+    const cmd = "UPDATE " + table + "\n\tSET\n\t\t" + Object.keys(cases).map(k => "`" + k + "` = (" + cases[k].cmd + ")").join(",\n\t\t") + cmdWhere;
     return {
         cmd,
         args: [...Object.keys(cases).flatMap(k => cases[k].args), ...cmdArgs]
