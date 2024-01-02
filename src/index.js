@@ -65,12 +65,12 @@ export function adapter(connection) {
                     }
                 },
                 async forDescribe(cmd, args) {
-                    const [result] = /** @type {import('mysql2/promise').ResultSetHeader[]} */ (await connection.execute(cmd, args));
+                    const [result] = /** @type {any[]} */ (await connection.execute(cmd, args));
                     /** @type {any} */
-                    let set = {}
-                    for(const field in result) {
-                        let defaultValue = getDefaultValueFn(result[field].Type, result[field].Default, result[field].Extra);
-                        let type = result[field].Type.toLowerCase();
+                    let set = {};
+                    for(const field of result) {
+                        let defaultValue = getDefaultValueFn(field.Type, field.Default, field.Extra);
+                        let type = field.Type.toLowerCase();
                         
                         loopThroughDataTypes:
                         for (const dataType in mysqlDataTypes) {
@@ -81,14 +81,14 @@ export function adapter(connection) {
                                 }
                             }
                         }
-                        set[field] = {
-                            field: result[field].Field,
+                        set[field.Field] = {
+                            field: field.Field,
                             table: "",
                             alias: "",
-                            isPrimary: result[field].Key === "PRI",
-                            isIdentity: result[field].Extra.includes("auto_increment"),
-                            isVirtual: result[field].Extra.includes("VIRTUAL"),
-                            isNullable: result[field].Null === "YES",
+                            isPrimary: field.Key === "PRI",
+                            isIdentity: field.Extra.includes("auto_increment"),
+                            isVirtual: field.Extra.includes("VIRTUAL"),
+                            isNullable: field.Null === "YES",
                             datatype: type,
                             defaultValue
                         };
@@ -479,7 +479,7 @@ function getGroupBy(group_by) {
 function getOrderBy(order_by) {
     if(!order_by) return { cmd: "", args: [] };
     return {
-        cmd: "\n\tORDER BY " + order_by.map(prop => "`" + prop.alias + "`").join("\n\t\t,"),
+        cmd: "\n\tORDER BY " + order_by.map(prop => "`" + prop.alias + "` " + prop.direction).join("\n\t\t,"),
         args: []
     };
 }

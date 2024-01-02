@@ -12,11 +12,13 @@ const pool = createMySql2Pool({
 
 const connection = adapter(pool);
 
-await testAdapter(connection, false, {
-    printArgs: false,
-    printSuccess: false,
-    printFail: false,
-    typeOfCommand: "raw"
+await testAdapter(connection, {
+    albumsTableName: "Album",
+    genresTableName: "Genre",
+    playlistTracksTableName: "PlaylistTrack",
+    playlistsTableName: "Playlist",
+    tracksTableName: "Track",
+    precision: 4
 });
 
 process.exit(1);
